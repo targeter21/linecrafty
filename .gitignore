@@ -1,0 +1,37 @@
+# --- Local install state (written by setup.cmd) ---
+config.json
+python_path.txt
+lib/
+
+# --- AI models (downloaded by setup.cmd, ~17 GB, not ours to redistribute) ---
+models/
+*.part
+
+# --- Your pictures and generated pages ---
+input/
+output/
+examples/
+*.png
+*.jpg
+*.jpeg
+*.webp
+*.bmp
+*.gif
+*.svg
+!docs/**
+
+# --- Headless ComfyUI working dirs, logs, generated config ---
+comfy/
+
+# --- Python / tooling ---
+__pycache__/
+*.pyc
+.venv/
+venv/
+dist/
+*.log
+.claude/
+.vscode/
+.idea/
+Thumbs.db
+desktop.ini
