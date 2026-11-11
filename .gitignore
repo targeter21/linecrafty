@@ -1,9 +1,8 @@
-# --- Local install state (written by setup.cmd) ---
+# --- Local install state (written by setup.py) ---
 config.json
-python_path.txt
 lib/
 
-# --- AI models (downloaded by setup.cmd, ~17 GB, not ours to redistribute) ---
+# --- AI models (downloaded by setup.py, ~17 GB, not ours to redistribute) ---
 models/
 *.part
 
