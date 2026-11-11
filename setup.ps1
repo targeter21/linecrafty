@@ -149,7 +149,7 @@ Ok "ComfyUI code: $($pick.Dir)"
 Ok "Its Python:   $($pick.Python)"
 
 # ------------------------------------------------------------------ 2. check it can run this
-Step "Checking ComfyUI, GPU and memory"
+Step "Checking ComfyUI, graphics card and memory"
 
 $nodes = Join-Path $pick.Dir 'comfy_extras\nodes_flux.py'
 if (-not ((Test-Path $nodes) -and (Select-String -Path $nodes -Pattern 'FluxKontextImageScale' -Quiet))) {
@@ -163,9 +163,14 @@ r = {}
 try:
     import torch
     r["torch"] = torch.__version__
-    r["cuda"] = torch.cuda.is_available()
-    if r["cuda"]:
+    p = None
+    if torch.cuda.is_available():  # NVIDIA (CUDA) and AMD (ROCm builds report through torch.cuda too)
         p = torch.cuda.get_device_properties(0)
+        r["vendor"] = "AMD" if getattr(torch.version, "hip", None) else "NVIDIA"
+    elif hasattr(torch, "xpu") and torch.xpu.is_available():
+        p = torch.xpu.get_device_properties(0)
+        r["vendor"] = "Intel"
+    if p is not None:
         r["gpu"] = p.name; r["vram_gb"] = round(p.total_memory / 2**30, 1)
 except Exception as e:
     r["torch_error"] = str(e)
@@ -185,14 +190,23 @@ if ($r.torch_error) { Fail "PyTorch isn't working in ComfyUI's Python: $($r.torc
 if ($r.missing) { Fail "ComfyUI's Python is missing: $($r.missing -join ', '). Update/repair ComfyUI." }
 
 $ramGB = [math]::Round((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory / 1GB)
-if ($r.cuda) {
-    Ok "GPU: $($r.gpu) ($($r.vram_gb) GB)   RAM: $ramGB GB"
-    if ($r.vram_gb -lt 7.5) { Warn "Under 8 GB of GPU memory: it should still work, just slower." }
+if ($r.gpu) {
+    Ok "Graphics card: $($r.gpu) ($($r.vram_gb) GB)   RAM: $ramGB GB"
+    if ($r.vram_gb -lt 7.5) { Warn "Under 8 GB of video memory: it may still work, just slower." }
+    if ($r.vendor -eq 'AMD') { Info "AMD support is new. If pages fail or look wrong, please report it (comfy\server.log helps)." }
+    if ($r.vendor -eq 'Intel') { Warn "Intel graphics are untested with Linecrafty. It may work; please report how it goes." }
 } else {
-    Warn "No NVIDIA GPU found by ComfyUI. Making a page would take a very long time (or fail)."
+    Warn "ComfyUI didn't find a supported graphics card (NVIDIA or AMD)."
+    Warn "Without one, making a page would take a very long time (or fail)."
+    Info "If you have an AMD card, make sure you installed ComfyUI's AMD version."
     if (-not (Ask "Continue anyway?" 'n')) { exit 1 }
 }
-if ($ramGB -lt 30) { Warn "$ramGB GB of RAM. 32 GB or more is recommended; with less, pages may be very slow or fail." }
+if ($ramGB -lt 15) {
+    Warn "Only $ramGB GB of RAM. 16 GB is the minimum and 32 GB is recommended; pages will probably fail."
+    if (-not (Ask "Continue anyway?" 'n')) { exit 1 }
+} elseif ($ramGB -lt 30) {
+    Info "$ramGB GB of RAM: should work, but pages take longer. Close other programs while it runs (32 GB recommended)."
+}
 
 # ------------------------------------------------------------------ 3. SVG tracer
 Step "Installing the SVG tracer (small, into this folder only)"
@@ -205,7 +219,7 @@ if (-not $vtOk) {
 if ($vtOk) { Ok "vtracer ready" } else { Warn "Couldn't install vtracer; pages will be PNG only (no SVG)." }
 
 # ------------------------------------------------------------------ 4. models
-Step "AI models"
+Step "Local AI models (they run on this PC; nothing is sent anywhere)"
 $searchBases = @((Join-Path $Root 'models'), (Join-Path $pick.Dir 'models')) + $pick.Extra
 $todo = @()
 foreach ($m in $Models) {

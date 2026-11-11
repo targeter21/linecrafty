@@ -1,10 +1,11 @@
 # Linecrafty
 
-Turn any color picture into a clean black-and-white **coloring-book page**, on your own Windows PC.
-Nothing is uploaded anywhere.
+Turn any color picture into a clean black-and-white **coloring-book page** with local AI that runs
+entirely on your own Windows PC. Nothing is uploaded anywhere, and no account or cloud service is
+involved. After setup, it doesn't even need the internet.
 
-It isn't an edge-detection filter. An AI image-editing model (**FLUX.1 Kontext [dev]**, run through
-[ComfyUI](https://www.comfy.org)) redraws the picture as line art the way a coloring-book artist would:
+It isn't an edge-detection filter. A local AI image-editing model (**FLUX.1 Kontext [dev]**, run on
+your own graphics card through [ComfyUI](https://www.comfy.org)) redraws the picture as line art the way a coloring-book artist would:
 closed shapes, smooth outlines, no shading. The result is then upscaled 4x, cleaned to pure black on
 white, and traced to a vector SVG so it prints sharp at any size.
 
@@ -19,9 +20,15 @@ Three styles:
 ## What you need
 
 - Windows 10 or 11
-- An NVIDIA graphics card, ideally 8 GB or more (RTX 3060 / 3070 / 4060 or better)
-- 32 GB of RAM or more recommended
-- About 18 GB of free disk space for the AI models
+- An **NVIDIA or AMD** graphics card with 8 GB or more of video memory
+  - NVIDIA: RTX 3060 / 3070 / 4060 or better. Tested.
+  - AMD: Radeon RX 7700 XT / 7800 XT / 7900 or better, using ComfyUI's AMD (ROCm) version. Being
+    tested; please report how it goes.
+- System memory (RAM):
+  - **32 GB recommended**
+  - **16 GB minimum**: should work, but pages take longer; close other programs while it runs.
+    Not yet tested; we'd like to hear how it goes.
+- About 18 GB of free disk space for the local AI models
 - **ComfyUI**. The easiest is the [Comfy Desktop app](https://www.comfy.org/download): install it and
   open it once so it finishes setting itself up. You can close it afterwards.
 
@@ -32,7 +39,8 @@ Three styles:
 2. Double-click **`setup.cmd`**.
 
 Setup finds your ComfyUI (Comfy Desktop, the older ComfyUI desktop app, or a portable install; if it
-can't, it asks you to pick the folder), checks your GPU and memory, and downloads the models (~17.7 GB).
+can't, it asks you to pick the folder), checks your graphics card and memory, and downloads the local
+AI models (~17.7 GB).
 It asks before downloading, verifies every file against its SHA-256 hash, and resumes if interrupted:
 just run `setup.cmd` again. It never changes your ComfyUI install; the only thing it installs is the
 small `vtracer` library, into this folder's `lib\`.
@@ -58,7 +66,7 @@ A page takes about 2-4 minutes (simple: about 1 minute) on an 8 GB card. When it
 |---|---|
 | `name_lineart.png` | The coloring page, 3328x4992. Print this one. |
 | `name_lineart.svg` | Vector version, sharp at any size |
-| `name_raw.png` | The AI's direct output, before cleanup |
+| `name_raw.png` | The local AI's direct output, before cleanup |
 
 Every run draws a slightly different version, so if you don't like one, run it again.
 
@@ -112,7 +120,7 @@ uses it instead of downloading it again.
 
 Linecrafty's own code (the scripts in this repository) is [MIT licensed](LICENSE).
 
-The AI models are **not** part of this repository and are **not** covered by that license. Setup
+The local AI models are **not** part of this repository and are **not** covered by that license. Setup
 downloads them from their original sources, and each has its own terms (table above). Two of them,
 **FLUX.1 Kontext [dev]** and **4x-AnimeSharp**, are licensed for **non-commercial use only**. So the
 coloring pages Linecrafty makes with them are for personal use: print them, color them, share them
